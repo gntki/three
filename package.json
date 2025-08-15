@@ -13,6 +13,7 @@
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "styled-components": "^6.1.19",
+    "three": "^0.179.1",
     "vite-tsconfig-paths": "^5.1.4"
   },
   "devDependencies": {
@@ -20,6 +21,7 @@
     "@types/node": "^24.0.3",
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
+    "@types/three": "^0.179.0",
     "@vitejs/plugin-react": "^4.4.1",
     "babel-plugin-styled-components": "^2.1.4",
     "eslint": "^9.25.0",
