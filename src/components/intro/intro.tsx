@@ -8,7 +8,7 @@ export const Intro = () => {
 
   useEffect(() => {
     if(!sceneRef.current) return;
-    controller(sceneRef)
+    controller(sceneRef.current)
   }, [sceneRef.current]);
 
   return (

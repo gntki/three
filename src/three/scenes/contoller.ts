@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import {CubColors, GROUP_SCALES} from "@constants/constants.ts";
 
-export function controller(el) {
+export function controller(el: HTMLCanvasElement) {
   const scene = new THREE.Scene();
   const size = {w: window.innerWidth, h: window.innerHeight};
 
@@ -12,7 +12,7 @@ export function controller(el) {
   //Объект
   const group = new THREE.Group();
   scene.add(group);
-  const meshes = [];
+  const meshes: THREE.Mesh[] = [];
 
   let colorId = 0;
   const geometry = new THREE.BoxGeometry(1, 1, 1);
@@ -36,7 +36,7 @@ export function controller(el) {
   camera.position.set(0, 0, 3);
 
   //Рендер
-  const renderer = new THREE.WebGLRenderer({canvas: el.current});
+  const renderer = new THREE.WebGLRenderer({canvas: el});
   renderer.setSize(size.w, size.h);
   renderer.render(scene, camera);
 
