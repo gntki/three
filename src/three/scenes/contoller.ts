@@ -12,7 +12,7 @@ export function controller(el) {
   //Объект
   const group = new THREE.Group();
   scene.add(group)
-  const geometry = new THREE.BoxGeometry(1,1,1);
+  const geometry = new THREE.BoxGeometry(1, 1, 1);
   const material = new THREE.MeshBasicMaterial({color: 'green', wireframe: true})
   const mesh1 = new THREE.Mesh(geometry, material);
   const mesh2 = new THREE.Mesh(geometry, material);
@@ -25,13 +25,28 @@ export function controller(el) {
 
 
   //Камера
-  const camera = new THREE.PerspectiveCamera(75, size.w/size.h);
+  const camera = new THREE.PerspectiveCamera(75, size.w / size.h);
   scene.add(camera)
-  camera.position.set(0,2, 3);
+  camera.position.set(0, 2, 3);
   camera.lookAt(group.position);
 
   //Рендер
   const renderer = new THREE.WebGLRenderer({canvas: el.current})
-  renderer.setSize(size.w,size.h)
+  renderer.setSize(size.w, size.h)
   renderer.render(scene, camera)
+
+
+  const clock = new THREE.Clock();
+  const tick = () => {
+    const elapsedTime = clock.getElapsedTime();
+    group.rotation.x = elapsedTime*3;
+    camera.position.x = Math.sin(elapsedTime)
+    camera.position.y = Math.cos(elapsedTime)
+    camera.lookAt(group.position)
+
+    renderer.render(scene, camera)
+    window.requestAnimationFrame(tick)
+  }
+
+  tick();
 }
