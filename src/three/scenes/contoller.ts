@@ -1,11 +1,13 @@
 import * as THREE from 'three'
-import {CubColors, GROUP_SCALES} from "@constants/constants.ts";
+import {CubColors} from "@constants/constants.ts";
+import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
+import {DragControls} from "three/examples/jsm/controls/DragControls";
 
 export function controller(el: HTMLCanvasElement) {
   const scene = new THREE.Scene();
   const size = {w: window.innerWidth, h: window.innerHeight};
 
-  //Ось
+  // Ось
   const axesHelper = new THREE.AxesHelper(3);
   scene.add(axesHelper);
 
@@ -14,17 +16,17 @@ export function controller(el: HTMLCanvasElement) {
   scene.add(group);
   const meshes: THREE.Mesh[] = [];
 
-  let colorId = 0;
   const geometry = new THREE.BoxGeometry(1, 1, 1);
-  for(let x=-1.2; x<=1.2; x+=1.2) {
-    for(let y=-1.2; y<=1.2; y+=1.2) {
-      const mesh = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({
-        color: CubColors[colorId], wireframe: true
-      }));
-      mesh.position.set(x,y,0)
-      mesh.scale.set(.55,.55,.55)
-      meshes.push(mesh);
-      colorId++;
+  for(let x=-1; x<=1; x+=1) {
+    for(let y=-1; y<=1; y+=1) {
+      for(let z=-1; z<=1; z+=1) {
+        const mesh = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({
+          color: CubColors[(Math.random() * 9).toFixed(0)], wireframe: true
+        }));
+        mesh.position.set(x,y,z)
+        mesh.scale.set(1,1,1)
+        meshes.push(mesh);
+      }
     }
   }
   group.add(...meshes)
@@ -33,7 +35,21 @@ export function controller(el: HTMLCanvasElement) {
   //Камера
   const camera = new THREE.PerspectiveCamera(75, size.w / size.h);
   scene.add(camera);
-  camera.position.set(0, 0, 3);
+  camera.position.set(0, 0, 5);
+
+  //orbitControls
+  const orbitControls = new OrbitControls(camera, el);
+  orbitControls.enableDamping = true;
+
+  //dragControls
+  const dragControls = new DragControls(meshes, camera, el);
+  dragControls.addEventListener( 'dragstart', ()  =>  {
+    orbitControls.enabled = false;
+  } );
+
+  dragControls.addEventListener( 'hoveroff', () => {
+    orbitControls.enabled = true;
+  } );
 
   //Рендер
   const renderer = new THREE.WebGLRenderer({canvas: el});
@@ -42,32 +58,12 @@ export function controller(el: HTMLCanvasElement) {
 
 
   const clock = new THREE.Clock();
-  let grow = false;
 
   const tick = () => {
     const delta = clock.getDelta();
-    const elapsedTime = clock.getElapsedTime();
 
-    meshes.forEach((el, id) => {
-      const mult = id%2===0 ? 1 : -1;
-      el.rotation.x += delta * mult;
-      el.rotation.y += delta * mult * .4;
-    })
-
-    camera.position.x = Math.cos(elapsedTime);
-    camera.position.y = Math.sin(elapsedTime);
-    camera.lookAt(new THREE.Vector3(0,0,0))
-
-    const mult = grow ? 1 : -1;
-    const speed = .1;
-    group.scale.x += delta * mult * speed;
-    group.scale.y += delta * mult * speed;
-    group.scale.z += delta * mult * speed;
-
-    if(grow && group.scale.x >= GROUP_SCALES.MAX) {
-      grow = false;
-    } else if (group.scale.x <= GROUP_SCALES.MIN) {
-      grow = true;
+    if (orbitControls.enabled) {
+      orbitControls.update();
     }
 
     renderer.render(scene, camera);
@@ -76,3 +72,4 @@ export function controller(el: HTMLCanvasElement) {
 
   tick();
 }
+
