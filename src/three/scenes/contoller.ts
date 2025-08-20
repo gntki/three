@@ -76,5 +76,17 @@ export function controller(el: HTMLCanvasElement) {
   }
 
   tick();
+
+  window.addEventListener('resize', ()=> {
+    size.w = window.innerWidth;
+    size.h = window.innerHeight
+
+    camera.aspect = size.w/size.h;
+    camera.updateProjectionMatrix();
+
+    renderer.setSize(size.w, size.h);
+    // renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.render(scene, camera);
+  })
 }
 
