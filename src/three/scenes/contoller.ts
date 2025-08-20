@@ -17,14 +17,19 @@ export function controller(el: HTMLCanvasElement) {
   const meshes: THREE.Mesh[] = [];
 
   const geometry = new THREE.BoxGeometry(1, 1, 1);
-  for(let x=-1; x<=1; x+=1) {
-    for(let y=-1; y<=1; y+=1) {
-      for(let z=-1; z<=1; z+=1) {
-        const mesh = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({
-          color: CubColors[(Math.random() * 9).toFixed(0)], wireframe: true
+  const geometrySphere = new THREE.SphereGeometry(.5, 32, 16);
+  for (let x = -1; x <= 1; x += 1) {
+    for (let y = -1; y <= 1; y += 1) {
+      for (let z = -1; z <= 1; z += 1) {
+
+        const cond = x === 0 && y === 0 && z === 0;
+        const _geometry = cond ? geometrySphere : geometry;
+
+        const mesh = new THREE.Mesh(_geometry, new THREE.MeshBasicMaterial({
+          color: CubColors[(Math.random() * 9).toFixed(0)], wireframe: !cond
         }));
-        mesh.position.set(x,y,z)
-        mesh.scale.set(1,1,1)
+        mesh.position.set(x, y, z)
+        mesh.scale.set(1, 1, 1)
         meshes.push(mesh);
       }
     }
@@ -43,13 +48,13 @@ export function controller(el: HTMLCanvasElement) {
 
   //dragControls
   const dragControls = new DragControls(meshes, camera, el);
-  dragControls.addEventListener( 'dragstart', ()  =>  {
+  dragControls.addEventListener('dragstart', () => {
     orbitControls.enabled = false;
-  } );
+  });
 
-  dragControls.addEventListener( 'hoveroff', () => {
+  dragControls.addEventListener('hoveroff', () => {
     orbitControls.enabled = true;
-  } );
+  });
 
   //Рендер
   const renderer = new THREE.WebGLRenderer({canvas: el});
