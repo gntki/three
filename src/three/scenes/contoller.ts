@@ -3,90 +3,136 @@ import {CubColors} from "@constants/constants.ts";
 import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
 import {DragControls} from "three/examples/jsm/controls/DragControls";
 
-export function controller(el: HTMLCanvasElement) {
-  const scene = new THREE.Scene();
-  const size = {w: window.innerWidth, h: window.innerHeight};
+export class Controller {
+  private el: HTMLCanvasElement;
+  private size: { w: number, h: number } = {w: 0, h: 0};
+  private scene: THREE.Scene;
+  private camera: THREE.PerspectiveCamera;
+  private renderer: THREE.WebGLRenderer;
+  private meshes: THREE.Mesh[] = [];
+  private orbitControls: OrbitControls;
+  private dragControls: DragControls;
 
-  // Ось
-  const axesHelper = new THREE.AxesHelper(3);
-  scene.add(axesHelper);
 
-  //Объект
-  const group = new THREE.Group();
-  scene.add(group);
-  const meshes: THREE.Mesh[] = [];
+  constructor(el: HTMLCanvasElement, size) {
+    this.el = el;
+    this.size.w = size.w;
+    this.size.h = size.h;
+    this.scene = new THREE.Scene();
 
-  const geometry = new THREE.BoxGeometry(1, 1, 1);
-  const geometrySphere = new THREE.SphereGeometry(.5, 32, 16);
-  for (let x = -1; x <= 1; x += 1) {
-    for (let y = -1; y <= 1; y += 1) {
-      for (let z = -1; z <= 1; z += 1) {
+    this.tick = this.tick.bind(this);
 
-        const cond = x === 0 && y === 0 && z === 0;
-        const _geometry = cond ? geometrySphere : geometry;
+    this.init();
+  }
 
-        const mesh = new THREE.Mesh(_geometry, new THREE.MeshBasicMaterial({
-          color: CubColors[(Math.random() * 9).toFixed(0)], wireframe: !cond
-        }));
-        mesh.position.set(x, y, z)
-        mesh.scale.set(1, 1, 1)
-        meshes.push(mesh);
+
+  init() {
+    // this.createAxesHelper();
+    this.createObjects();
+    this.createCamera();
+    this.createRender();
+
+    this.setControls();
+
+    this.tick();
+
+    this.addResizeListener();
+  }
+
+
+  createAxesHelper() {
+    const axesHelper = new THREE.AxesHelper(3);
+    this.scene.add(axesHelper);
+  }
+
+
+  createObjects() {
+    const group = new THREE.Group();
+    this.scene.add(group);
+
+    const geometry = new THREE.BoxGeometry(1, 1, 1);
+    const geometrySphere = new THREE.SphereGeometry(.5, 32, 16);
+
+    for (let x = -1; x <= 1; x += 1) {
+      for (let y = -1; y <= 1; y += 1) {
+        for (let z = -1; z <= 1; z += 1) {
+
+          const cond = x === 0 && y === 0 && z === 0;
+          const _geometry = cond ? geometrySphere : geometry;
+
+          const mesh = new THREE.Mesh(_geometry, new THREE.MeshBasicMaterial({
+            color: CubColors[(Math.random() * 9).toFixed(0)], wireframe: !cond
+          }));
+
+          mesh.position.set(x, y, z)
+          mesh.scale.set(1, 1, 1)
+
+          this.meshes.push(mesh);
+        }
       }
     }
+
+    group.add(...this.meshes)
   }
-  group.add(...meshes)
 
 
-  //Камера
-  const camera = new THREE.PerspectiveCamera(75, size.w / size.h);
-  scene.add(camera);
-  camera.position.set(0, 0, 5);
-
-  //orbitControls
-  const orbitControls = new OrbitControls(camera, el);
-  orbitControls.enableDamping = true;
-
-  //dragControls
-  const dragControls = new DragControls(meshes, camera, el);
-  dragControls.addEventListener('dragstart', () => {
-    orbitControls.enabled = false;
-  });
-
-  dragControls.addEventListener('hoveroff', () => {
-    orbitControls.enabled = true;
-  });
-
-  //Рендер
-  const renderer = new THREE.WebGLRenderer({canvas: el});
-  renderer.setSize(size.w, size.h);
-  renderer.render(scene, camera);
+  createCamera() {
+    this.camera = new THREE.PerspectiveCamera(75, this.size.w / this.size.h);
+    this.scene.add(this.camera);
+    this.camera.position.set(0, 0, 5);
+  }
 
 
-  const clock = new THREE.Clock();
+  createRender() {
+    this.renderer = new THREE.WebGLRenderer({canvas: this.el});
+    this.renderer.setSize(this.size.w, this.size.h);
+    this.renderer.render(this.scene, this.camera);
+  }
 
-  const tick = () => {
-    const delta = clock.getDelta();
 
-    if (orbitControls.enabled) {
-      orbitControls.update();
+  setControls() {
+    //orbitControls
+    this.orbitControls = new OrbitControls(this.camera, this.el);
+    this.orbitControls.enableDamping = true;
+
+    //dragControls
+    this.dragControls = new DragControls(this.meshes, this.camera, this.el);
+    this.dragControls.addEventListener('dragstart', (e) => {
+      this.orbitControls.enabled = false;
+    });
+
+    this.dragControls.addEventListener('hoveroff', (e) => {
+      this.orbitControls.enabled = true;
+    });
+  }
+
+
+  tick() {
+    console.log('tick')
+    if (this.orbitControls.enabled) {
+      this.orbitControls.update();
     }
 
-    renderer.render(scene, camera);
-    window.requestAnimationFrame(tick);
+    this.orbitControls.update();
+
+    this.renderer.render(this.scene, this.camera);
+    window.requestAnimationFrame(this.tick);
+
   }
 
-  tick();
 
-  window.addEventListener('resize', ()=> {
-    size.w = window.innerWidth;
-    size.h = window.innerHeight
+  addResizeListener() {
+    window.addEventListener('resize', () => {
+      this.size.w = window.innerWidth;
+      this.size.h = window.innerHeight
 
-    camera.aspect = size.w/size.h;
-    camera.updateProjectionMatrix();
+      this.camera.aspect = this.size.w / this.size.h;
+      this.camera.updateProjectionMatrix();
 
-    renderer.setSize(size.w, size.h);
-    // renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.render(scene, camera);
-  })
+      this.renderer.setSize(this.size.w, this.size.h);
+      // renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      this.renderer.render(this.scene, this.camera);
+    })
+  }
 }
 

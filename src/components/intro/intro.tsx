@@ -1,15 +1,17 @@
 import * as S from './intro.style.ts'
-import {useEffect, useRef} from "react";
-import {controller} from "three/scenes/contoller.ts";
+import {useEffect, useLayoutEffect, useRef} from "react";
+import {Controller} from "three/scenes/contoller.ts";
 
 
 export const Intro = () => {
   const sceneRef = useRef<HTMLCanvasElement | null>(null);
 
-  useEffect(() => {
-    if(!sceneRef.current) return;
-    controller(sceneRef.current)
-  }, [sceneRef.current]);
+  useLayoutEffect(() => {
+    const size = {w: window?.innerWidth, h: window.innerHeight};
+
+    if(sceneRef?.current)
+      new Controller(sceneRef.current, size);
+  }, [sceneRef.current, window]);
 
   return (
     <S.IntroStyled>
