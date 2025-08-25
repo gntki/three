@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import {CubColors, GeometryPack} from "@constants/constants.ts";
+import {COLOR_ACTIVE, COLOR_BASE, CubColors, GeometryPack} from "@constants/constants.ts";
 import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
 import {DragControls} from "three/examples/jsm/controls/DragControls";
 
@@ -7,9 +7,12 @@ export class Controller {
   private el: HTMLCanvasElement;
   private size: { w: number, h: number } = {w: 0, h: 0};
   private scene: THREE.Scene;
+  private group: THREE.Group;
   private camera: THREE.PerspectiveCamera;
   private renderer: THREE.WebGLRenderer;
   private orbitControls: OrbitControls;
+
+  private activeIndex: number = -1;
 
 
   constructor(el: HTMLCanvasElement, size) {
@@ -35,6 +38,7 @@ export class Controller {
     this.tick();
 
     this.addResizeListener();
+    this.addClickListener();
   }
 
 
@@ -45,23 +49,25 @@ export class Controller {
 
 
   createObjects() {
-    const group = new THREE.Group();
-    this.scene.add(group);
+    this.group = new THREE.Group();
+    this.scene.add(this.group);
 
     let index = 0;
     for (let x = -5; x <= 5; x += 5) {
       for (let y = -5; y <= 5; y += 5) {
           const mesh = new THREE.Mesh(
             GeometryPack[index], new THREE.MeshBasicMaterial({
-            color: 0xfefefe, wireframe: true
+            color: COLOR_BASE, wireframe: true
           }));
           mesh.position.set(x, y, 0);
-          group.add(mesh)
-          index++;
+          // @ts-ignore
+          mesh.index = index;
+          this.group.add(mesh)
+          index+=1;
         }
 
     }
-    this.scene.add(group);
+    this.scene.add(this.group);
 
   }
 
@@ -108,6 +114,35 @@ export class Controller {
       // renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       this.renderer.render(this.scene, this.camera);
     })
+  }
+
+  addClickListener() {
+    const handleClick = (e) => {
+      const raycaster = new THREE.Raycaster();
+      const pointer = new THREE.Vector2();
+
+      pointer.x = ( e.clientX / window.innerWidth ) * 2 - 1;
+      pointer.y = - ( e.clientY / window.innerHeight ) * 2 + 1;
+
+      raycaster.setFromCamera(pointer, this.camera);
+
+      const intersects = raycaster.intersectObject(this.group);
+
+      if(this.activeIndex > 0) {
+        // @ts-ignore
+        this.group.children[this.activeIndex].material.color.set(COLOR_BASE);
+        this.activeIndex = -1;
+      }
+
+      for ( let i = 0; i < intersects.length; i ++ ) {
+        // @ts-ignore
+        intersects[i].object.material.color.set(COLOR_ACTIVE);
+        // @ts-ignore
+        this.activeIndex = intersects[i].object.index;
+      }
+    }
+
+    window.addEventListener('click', handleClick)
   }
 }
 

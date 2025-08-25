@@ -34,3 +34,6 @@ export const GeometryPack = [
   new THREE.SphereGeometry( 1.4, 10, 10 ),
   new THREE.TetrahedronGeometry(1.5, 0),
 ]
+
+export const COLOR_BASE = 0xfefefe;
+export const COLOR_ACTIVE = 0xca37de;
