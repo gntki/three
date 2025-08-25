@@ -1,7 +1,8 @@
 import * as THREE from 'three'
-import {COLOR_ACTIVE, COLOR_BASE, CubColors, GeometryPack} from "@constants/constants.ts";
+import {COLOR_ACTIVE, COLOR_BASE, GeometryPack} from "@constants/constants.ts";
 import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
-import {DragControls} from "three/examples/jsm/controls/DragControls";
+// @ts-ignore
+import { gsap } from "gsap";
 
 export class Controller {
   private el: HTMLCanvasElement;
@@ -65,6 +66,8 @@ export class Controller {
           mesh.position.set(x, y, 0);
           // @ts-ignore
           mesh.index = index;
+          // @ts-ignore
+          mesh.basePositions = {x: x, y: y, z: 0};
           this.group.add(mesh)
           index+=1;
         }
@@ -136,9 +139,19 @@ export class Controller {
 
       const intersects = raycaster.intersectObject(this.group);
 
+      console.log(this.group.children)
       if(this.activeIndex !== -1) {
         // @ts-ignore
         this.group.children[this.activeIndex].material.color.set(COLOR_BASE);
+        // @ts-ignore
+        const {x, y, z} = this.group.children[this.activeIndex].basePositions;
+        gsap.to(this.group.children[this.activeIndex].position, {
+          x: x,
+          y: y,
+          z: z,
+          duration: .5,
+          ease: "power3.out"
+        })
         this.activeIndex = -1;
       }
 
@@ -147,6 +160,13 @@ export class Controller {
         intersects[i].object.material.color.set(COLOR_ACTIVE);
         // @ts-ignore
         this.activeIndex = intersects[i].object.index;
+        gsap.to(this.group.children[this.activeIndex].position, {
+          x: 0,
+          y: 0,
+          z: 10,
+          duration: .5,
+          ease: "power3.out"
+        })
       }
     }
 
