@@ -2,7 +2,7 @@ import * as THREE from 'three'
 import {COLOR_ACTIVE, COLOR_BASE, GeometryPack} from "@constants/constants.ts";
 import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
 // @ts-ignore
-import { gsap } from "gsap";
+import {gsap} from "gsap";
 
 export class Controller {
   private el: HTMLCanvasElement;
@@ -59,18 +59,18 @@ export class Controller {
     let index = 0;
     for (let x = -5; x <= 5; x += 5) {
       for (let y = -5; y <= 5; y += 5) {
-          const mesh = new THREE.Mesh(
-            GeometryPack[index], new THREE.MeshBasicMaterial({
+        const mesh = new THREE.Mesh(
+          GeometryPack[index], new THREE.MeshBasicMaterial({
             color: COLOR_BASE, wireframe: true
           }));
-          mesh.position.set(x, y, 0);
-          // @ts-ignore
-          mesh.index = index;
-          // @ts-ignore
-          mesh.basePositions = {x: x, y: y, z: 0};
-          this.group.add(mesh)
-          index+=1;
-        }
+        mesh.position.set(x, y, 0);
+        // @ts-ignore
+        mesh.index = index;
+        // @ts-ignore
+        mesh.basePositions = {x: x, y: y, z: 0};
+        this.group.add(mesh)
+        index += 1;
+      }
 
     }
     this.scene.add(this.group);
@@ -101,15 +101,32 @@ export class Controller {
 
   tick() {
     const delta = this.clock.getDelta();
-    if(this.activeIndex!==-1) {
-      this.group.children[this.activeIndex].rotation.y += delta/2;
+    if (this.activeIndex !== -1) {
+      this.group.children[this.activeIndex].rotation.y += delta / 2;
     }
 
     this.orbitControls.update();
 
     this.renderer.render(this.scene, this.camera);
     window.requestAnimationFrame(this.tick);
+  }
 
+  activateElement(element) {
+    element.material.color.set(COLOR_ACTIVE);
+    // @ts-ignore
+    this.activeIndex = element.index;
+    gsap.to(this.group.children[this.activeIndex].position, {x: 0, y: 0, z: 10, duration: .5, ease: "power3.out"})
+  }
+
+  resetElement() {
+    if (this.activeIndex === -1) return;
+
+    // @ts-ignore
+    this.group.children[this.activeIndex].material.color.set(COLOR_BASE);
+    // @ts-ignore
+    const {x, y, z} = this.group.children[this.activeIndex].basePositions;
+    gsap.to(this.group.children[this.activeIndex].position, {x: x, y: y, z: z, duration: .5, ease: "power3.out"})
+    this.activeIndex = -1;
   }
 
 
@@ -132,43 +149,25 @@ export class Controller {
       const raycaster = new THREE.Raycaster();
       const pointer = new THREE.Vector2();
 
-      pointer.x = ( e.clientX / window.innerWidth ) * 2 - 1;
-      pointer.y = - ( e.clientY / window.innerHeight ) * 2 + 1;
+      pointer.x = (e.clientX / window.innerWidth) * 2 - 1;
+      pointer.y = -(e.clientY / window.innerHeight) * 2 + 1;
 
       raycaster.setFromCamera(pointer, this.camera);
 
       const intersects = raycaster.intersectObject(this.group);
+      const curIntersect = intersects[0];
 
-      console.log(this.group.children)
-      if(this.activeIndex !== -1) {
-        // @ts-ignore
-        this.group.children[this.activeIndex].material.color.set(COLOR_BASE);
-        // @ts-ignore
-        const {x, y, z} = this.group.children[this.activeIndex].basePositions;
-        gsap.to(this.group.children[this.activeIndex].position, {
-          x: x,
-          y: y,
-          z: z,
-          duration: .5,
-          ease: "power3.out"
-        })
-        this.activeIndex = -1;
+      //@ts-ignore
+      if (intersects.length === 0 || this.activeIndex !== -1) {
+        this.resetElement()
       }
 
-      for ( let i = 0; i < intersects.length; i ++ ) {
-        // @ts-ignore
-        intersects[i].object.material.color.set(COLOR_ACTIVE);
-        // @ts-ignore
-        this.activeIndex = intersects[i].object.index;
-        gsap.to(this.group.children[this.activeIndex].position, {
-          x: 0,
-          y: 0,
-          z: 10,
-          duration: .5,
-          ease: "power3.out"
-        })
+      if (curIntersect) {
+        this.activateElement(curIntersect.object);
       }
+
     }
+
 
     window.addEventListener('click', handleClick)
   }
