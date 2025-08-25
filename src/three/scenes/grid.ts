@@ -14,6 +14,8 @@ export class Controller {
 
   private activeIndex: number = -1;
 
+  private clock: THREE.Clock;
+
 
   constructor(el: HTMLCanvasElement, size) {
     this.el = el;
@@ -35,6 +37,7 @@ export class Controller {
 
     this.setControls();
 
+    this.clock = new THREE.Clock();
     this.tick();
 
     this.addResizeListener();
@@ -94,6 +97,11 @@ export class Controller {
 
 
   tick() {
+    const delta = this.clock.getDelta();
+    if(this.activeIndex!==-1) {
+      this.group.children[this.activeIndex].rotation.y += delta/2;
+    }
+
     this.orbitControls.update();
 
     this.renderer.render(this.scene, this.camera);
@@ -128,7 +136,7 @@ export class Controller {
 
       const intersects = raycaster.intersectObject(this.group);
 
-      if(this.activeIndex > 0) {
+      if(this.activeIndex !== -1) {
         // @ts-ignore
         this.group.children[this.activeIndex].material.color.set(COLOR_BASE);
         this.activeIndex = -1;
