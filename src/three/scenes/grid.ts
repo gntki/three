@@ -2,6 +2,7 @@ import * as THREE from 'three'
 import {COLOR_ACTIVE, COLOR_BASE, GeometryPack} from "@constants/constants.ts";
 import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
 import Stats from 'three/examples/jsm/libs/stats.module.js'
+import GUI from "lil-gui";
 // @ts-ignore
 import {gsap} from "gsap";
 
@@ -17,7 +18,9 @@ export class Controller {
   private activeIndex: number = -1;
 
   private clock: THREE.Clock;
+
   private stats;
+  private gui: GUI;
 
 
   constructor(el: HTMLCanvasElement, size) {
@@ -38,6 +41,7 @@ export class Controller {
     this.createCamera();
     this.createRender();
     this.createStats();
+    this.createGui();
 
     this.setControls();
 
@@ -57,7 +61,6 @@ export class Controller {
 
   createObjects() {
     this.group = new THREE.Group();
-    this.scene.add(this.group);
 
     let index = 0;
     for (let x = -5; x <= 5; x += 5) {
@@ -98,6 +101,15 @@ export class Controller {
     this.stats = new Stats();
     this.stats.showPanel(0);
     document.body.appendChild(this.stats.dom)
+  }
+
+  createGui() {
+    this.gui = new GUI();
+    this.gui.add(this.group, 'visible').name('group visible');
+    const folder = this.gui.addFolder('scales')
+    folder.add(this.group.scale, 'x', 1, 2, .1)
+    folder.add(this.group.scale, 'y', 1, 2, .1)
+    folder.add(this.group.scale, 'z', 1, 2, .1)
   }
 
 
