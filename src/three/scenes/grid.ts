@@ -1,6 +1,7 @@
 import * as THREE from 'three'
 import {COLOR_ACTIVE, COLOR_BASE, GeometryPack} from "@constants/constants.ts";
 import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
+import Stats from 'three/examples/jsm/libs/stats.module.js'
 // @ts-ignore
 import {gsap} from "gsap";
 
@@ -16,6 +17,7 @@ export class Controller {
   private activeIndex: number = -1;
 
   private clock: THREE.Clock;
+  private stats;
 
 
   constructor(el: HTMLCanvasElement, size) {
@@ -35,6 +37,7 @@ export class Controller {
     this.createObjects();
     this.createCamera();
     this.createRender();
+    this.createStats();
 
     this.setControls();
 
@@ -91,6 +94,12 @@ export class Controller {
     this.renderer.render(this.scene, this.camera);
   }
 
+  createStats() {
+    this.stats = new Stats();
+    this.stats.showPanel(0);
+    document.body.appendChild(this.stats.dom)
+  }
+
 
   setControls() {
     //orbitControls
@@ -100,6 +109,7 @@ export class Controller {
 
 
   tick() {
+    this.stats.begin();
     const delta = this.clock.getDelta();
     if (this.activeIndex !== -1) {
       this.group.children[this.activeIndex].rotation.y += delta / 2;
@@ -108,6 +118,7 @@ export class Controller {
     this.orbitControls.update();
 
     this.renderer.render(this.scene, this.camera);
+    this.stats.end();
     window.requestAnimationFrame(this.tick);
   }
 
