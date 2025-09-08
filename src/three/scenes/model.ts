@@ -2,6 +2,7 @@ import * as THREE from 'three'
 import {GeometryPack} from "@constants/constants.ts";
 import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
 import Stats from 'three/examples/jsm/libs/stats.module.js'
+import {GLTFLoader} from "three/examples/jsm/loaders/GLTFLoader";
 
 
 export class Controller {
@@ -11,8 +12,6 @@ export class Controller {
   private camera: THREE.PerspectiveCamera;
   private renderer: THREE.WebGLRenderer;
   private orbitControls: OrbitControls;
-
-  private activeIndex: number = -1;
 
   private clock: THREE.Clock;
   private stats;
@@ -31,9 +30,10 @@ export class Controller {
 
 
   init() {
-    // this.createAxesHelper();
+    this.createAxesHelper();
     this.createLights();
-    this.createObjects();
+    this.createModels();
+    // this.createObjects();
     this.createCamera();
     this.createRender();
     this.createStats();
@@ -48,7 +48,7 @@ export class Controller {
 
 
   createAxesHelper() {
-    const axesHelper = new THREE.AxesHelper(3);
+    const axesHelper = new THREE.AxesHelper(10);
     this.scene.add(axesHelper);
   }
 
@@ -61,6 +61,21 @@ export class Controller {
     this.scene.add(ambientLight);
     this.scene.add(directionalLight);
     this.scene.add(pointLight);
+  }
+
+  createModels() {
+    const loader = new GLTFLoader();
+    loader.load(
+      'src/models/alice/scene.gltf',
+      gltf => {
+        const model = gltf.scene;
+        this.scene.add(model)
+        model.scale.set(3,3,3);
+        model.position.set(0,-3,0);
+      },
+      xhr => console.log(`${xhr.loaded/xhr.total*100}%`),
+      e => console.log(e)
+    )
   }
 
   createObjects() {
