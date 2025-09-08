@@ -1,6 +1,6 @@
 import * as S from './intro.style.ts'
 import {useLayoutEffect, useRef} from "react";
-import {Controller} from "three/scenes/grid.ts";
+import {Controller} from "three/scenes/model.ts";
 
 
 export const Intro = () => {
