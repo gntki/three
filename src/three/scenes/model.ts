@@ -13,6 +13,13 @@ export class Controller {
   private renderer: THREE.WebGLRenderer;
   private orbitControls: OrbitControls;
 
+  private raycaster: THREE.Raycaster;
+  private pointer: THREE.Vector2;
+
+  private model;
+  private animations;
+  private mixer: THREE.AnimationMixer | null = null;
+
   private clock: THREE.Clock;
   private stats;
 
@@ -22,6 +29,7 @@ export class Controller {
     this.size.w = size.w;
     this.size.h = size.h;
     this.scene = new THREE.Scene();
+    this.scene.background = new THREE.Color(0x252525);
 
     this.tick = this.tick.bind(this);
 
@@ -30,7 +38,7 @@ export class Controller {
 
 
   init() {
-    this.createAxesHelper();
+    // this.createAxesHelper();
     this.createLights();
     this.createModels();
     // this.createObjects();
@@ -41,9 +49,11 @@ export class Controller {
     this.setControls();
 
     this.clock = new THREE.Clock();
+    // this.addRaycaster();
     this.tick();
 
     this.addResizeListener();
+    // this.addClickListener();
   }
 
 
@@ -53,9 +63,9 @@ export class Controller {
   }
 
   createLights() {
-    const ambientLight = new THREE.AmbientLight(0x404040, 10);
-    const directionalLight = new THREE.DirectionalLight(0x404040, 50);
-    const pointLight = new THREE.PointLight(0x404040, 150);
+    const ambientLight = new THREE.AmbientLight(0x404040, 20);
+    const directionalLight = new THREE.DirectionalLight(0x404040, 150);
+    const pointLight = new THREE.PointLight(0x404040, 250);
     pointLight.position.set(5, 0, 0);
 
     this.scene.add(ambientLight);
@@ -66,12 +76,23 @@ export class Controller {
   createModels() {
     const loader = new GLTFLoader();
     loader.load(
-      'src/models/alice/scene.gltf',
+      'src/models/black_rat/scene.gltf',
       gltf => {
-        const model = gltf.scene;
-        this.scene.add(model)
-        model.scale.set(3,3,3);
-        model.position.set(0,-3,0);
+        this.model = gltf.scene;
+        this.animations = gltf.animations;
+
+        this.scene.add(this.model)
+        this.model.scale.set(2,2,2);
+        this.model.position.set(0,-2,0);
+
+        console.log('this.animations', this.animations)
+
+        if (this.animations && this.animations.length > 0) {
+          this.mixer = new THREE.AnimationMixer(this.model);
+
+          const action = this.mixer.clipAction(this.animations[0])
+          action.reset().play();
+        }
       },
       xhr => console.log(`${xhr.loaded/xhr.total*100}%`),
       e => console.log(e)
@@ -92,7 +113,7 @@ export class Controller {
   createCamera() {
     this.camera = new THREE.PerspectiveCamera(75, this.size.w / this.size.h);
     this.scene.add(this.camera);
-    this.camera.position.set(0, 0, 15);
+    this.camera.position.set(-6, 2, 8);
   }
 
 
@@ -115,14 +136,29 @@ export class Controller {
     this.orbitControls.enableDamping = true;
   }
 
+  addRaycaster() {
+    this.raycaster = new THREE.Raycaster();
+    this.pointer = new THREE.Vector2();
+
+    this.raycaster.setFromCamera( this.pointer, this.camera );
+  }
 
   tick() {
     this.stats.begin();
+
+    const delta = this.clock.getDelta();
     this.orbitControls.update();
+
+    if (this.mixer) {
+      this.mixer.update(delta);
+    }
+
     this.renderer.render(this.scene, this.camera);
+
     this.stats.end();
     window.requestAnimationFrame(this.tick);
   }
+
 
 
   addResizeListener() {
@@ -139,5 +175,26 @@ export class Controller {
     })
   }
 
+  addClickListener() {
+    window.addEventListener('click', (event)=> {
+      this.pointer.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+      this.pointer.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+
+      const intersects = this.raycaster.intersectObjects(this.model);
+
+
+      if (intersects) {
+        if(this.animations && this.animations.length && this.mixer) {
+          this.mixer.stopAllAction();
+
+          const action = this.mixer.clipAction(this.animations[11]);
+          action.loop = THREE.LoopOnce; // Проигрываем один раз
+          action.clampWhenFinished = true;
+          action.reset().play();
+        }
+      }
+      console.log('intersects', intersects)
+    })
+  }
 }
 
