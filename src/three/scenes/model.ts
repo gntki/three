@@ -90,7 +90,7 @@ export class Controller {
         if (this.animations && this.animations.length > 0) {
           this.mixer = new THREE.AnimationMixer(this.model);
 
-          const action = this.mixer.clipAction(this.animations[0])
+          const action = this.mixer.clipAction(this.animations[4])
           action.reset().play();
         }
       },
