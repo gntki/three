@@ -40,8 +40,8 @@ export class Controller {
   init() {
     // this.createAxesHelper();
     this.createLights();
+    this.createObjects();
     this.createModels();
-    // this.createObjects();
     this.createCamera();
     this.createRender();
     this.createStats();

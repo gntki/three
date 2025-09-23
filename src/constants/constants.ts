@@ -22,6 +22,7 @@ export const GROUP_SCALES = {
 }
 
 export const GeometryPack = [
+  new THREE.PlaneGeometry(50, 50),
   new THREE.BoxGeometry(3, 3, 3),
   new THREE.CapsuleGeometry(1, 1, 4, 8),
   new THREE.CircleGeometry(1.3, 15),
